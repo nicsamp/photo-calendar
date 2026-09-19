@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drive Viewer</title>
+
+    <script src="index.js"></script>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body>
+    <div class="main-view">
+        <button class="change-date" id="prev-date">
+            <i class="material-symbols-outlined">arrow_back</i>
+        </button>
+        <div class="calendars">
+            <h1 class="cal-label" id="cal-label">?</h1>
+            <div class="month-view hidden" id="month-view">
+                <ol class="month-week-box" id="month-week-box">
+
+                </ol>
+                <ol class="month-days-box" id="month-days-box">
+
+                </ol>
+            </div>
+            <div class="year-view hidden" id="year-view">
+                <ol class="year-months-box" id="year-months-box">
+
+                </ol>
+            </div>
+            <div class="day-view" id="day-view">
+                <ol id="day-images">
+
+                </ol>
+            </div>
+            <div class="single-view" id="single-view">
+                <img id="single-img">
+                <div class="single-info">
+
+                </div>
+            </div>
+        </div>
+        <button class="change-date" id="next-date">
+            <i class="material-symbols-outlined">arrow_forward</i>
+        </button>
+    </div>
+</body>
+</html>
