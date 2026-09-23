@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Photo Calendar",
+  "version": "1.0",
+  "description": "Simple browser extensions for viewing photos by date on a calendar.",
+  "action": {},
+  "background": {
+    "service_worker": "background.js"
+  }
+}

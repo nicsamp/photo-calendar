@@ -301,7 +301,6 @@ li img {
 .day-view ol li {
     width: fit-content;
     height: fit-content;
-    /*border: 2px solid var(--thin-border-color);*/
     border-radius: 10px;
 
     background: var(--bg-color);

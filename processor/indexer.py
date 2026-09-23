@@ -5,7 +5,7 @@ import json
 FOLDER = "./images/"
 media_ext = {".png", ".jpg", ".gif", ".jpeg", ".wmv", ".mpg", ".3gp", ".avi", ".mov", ".mp4", ".mswmm", ".heic", ".bmp"}
 img_ext = {".png", ".jpg", ".gif", ".jpeg", ".bmp"}
-MAX_BATCH_SIZE = 256
+MAX_BATCH_SIZE = 9999
 GET_DATES = True
 GET_EXTENSIONS = False
 
