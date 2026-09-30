@@ -3,6 +3,7 @@ let date = Temporal.PlainDate.from('2010-03-04')
 const WEEKS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 let curr_mode = 0; //year = 0, month = 1, day = 2, single = 3
 let img_id = 0;
+let curr_token = null;
 
 const TARGET_HEIGHT = 200;
 const GAP = 8;
@@ -23,55 +24,71 @@ function wait_for_images(images) {
     return Promise.all(promises);
 }
 
-function get_cover_image(day_data) {
-    let path = day_data[0].path;
+async function get_cover_image(day_data) {
+    let id = day_data[0].id;
     for (let img_i = 0; img_i < day_data.length; img_i++) {
         if (day_data[img_i].is_img) {
-            path = day_data[img_i].path;
+            id = day_data[img_i].id;
             break;
         }
     }
 
-    return path;
+    return await get_image(id);
+}
+
+function update_images_data() {
+    els.update_images.classList.add("loading");
+    get_images_metadata();
+    els.update_images.classList.remove("loading");
+    show_view()
+}
+
+function show_view() {
+    if (curr_mode === 0) {
+        show_year_view();
+    }
+    else if (curr_mode === 1) {
+        show_month_view();
+    }
+    else if (curr_mode === 2) {
+        show_day_view();
+    }
 }
 
 function change_date(change) {
     let today = Temporal.Now.plainDateISO();
     if (curr_mode === 0) {
         date = date.add({ years: change });
-        while (image_data?.[date.year] === undefined) {
+        while (images_data?.[date.year] === undefined) {
             date = date.add({ years: change });
             if (date.year < 1970 || date.year > today.year) {
                 break;
             }
         }
-        show_year_view();
     }
     else if (curr_mode === 1) {
         date = date.add({ months: change });
-        while (image_data?.[date.year]?.[date.month] === undefined) {
+        while (images_data?.[date.year]?.[date.month] === undefined) {
             date = date.add({ months: change });
             if (date.year < 1970 || date.year > today.year) {
                 break;
             }
         }
-        show_month_view();
     }
     else if (curr_mode === 2) {
         date = date.add({ days: change });
-        while (image_data?.[date.year]?.[date.month]?.[date.day] === undefined) {
+        while (images_data?.[date.year]?.[date.month]?.[date.day] === undefined) {
             date = date.add({ days: change });
             if (date.year < 1970 || date.year > today.year) {
                 break;
             }
         }
-        show_day_view();
     }
     else if (curr_mode === 3) {
         img_id += change
-        while (image_data?.[date.year]?.[date.month]?.[date.day]?.[img_id] === undefined) {
-            if (img_id >= image_data?.[date.year]?.[date.month]?.[date.day].length() || img_id < 0) {
-                img_id = img_id < 0 ? 0 : image_data?.[date.year]?.[date.month]?.[date.day].length() - 1;
+        while (images_data?.[date.year]?.[date.month]?.[date.day]?.[img_id] === undefined) {
+            if (img_id >= images_data?.[date.year]?.[date.month]?.[date.day].length() || img_id < 0) {
+                img_id = img_id < 0 ? 0 : images_data?.[date.year]?.[date.month]?.[date.day].length() - 1;
                 date = date.add({ days: change });
             }
             else {
@@ -82,15 +99,16 @@ function change_date(change) {
                 break;
             }
         }
-        show_single_view();
     }
+
+    show_view();
 }
 
 function selected_day(event) {
     date = date.with({ day: event.currentTarget.dataset.id});
     curr_mode = 2;
 
-    show_day_view()
+    show_view()
 }
 
 function selected_month(event) {
@@ -103,13 +121,13 @@ function selected_month(event) {
     date = date.with({ month: event.currentTarget.dataset.id});
     curr_mode = 1;
 
-    show_month_view();
+    show_view();
 }
 
 function selected_year() {
     curr_mode = 0;
 
-    show_year_view();
+    show_view();
 }
 
 function show_month_weeks(week_box) {
@@ -120,7 +138,9 @@ function show_month_weeks(week_box) {
     }
 }
 
-function show_month_view() {
+async function show_month_view() {
+    curr_token = await new Promise(r => chrome.identity.getAuthToken({ interactive: false }, r));
+
     els.day_view.classList.add('hidden');
     els.month_view.classList.remove('hidden');
     els.year_view.classList.add('hidden');
@@ -129,8 +149,8 @@ function show_month_view() {
     let year = date.year;
     let month = date.month;
     let month_data = {};
-    if (image_data?.[year]?.[month] !== undefined) {
-        month_data = image_data[year][month];
+    if (images_data?.[year]?.[month] !== undefined) {
+        month_data = images_data[year][month];
     }
     
     els.cal_label.textContent = date.toLocaleString('pt-BR', params={month: 'long', year: 'numeric'});
@@ -141,6 +161,8 @@ function show_month_view() {
     let num_days = date.daysInMonth;
     let start_blanks = (date.with({ day: 1 }).dayOfWeek - 1) % 7 + 1
     let num_spaces = 7 * 6;
+    let my_mode = curr_mode;
+    let my_date = date;
 
     for (let i = -start_blanks; i < num_spaces - start_blanks; i++) {
         let day = document.createElement('li');
@@ -153,9 +175,14 @@ function show_month_view() {
 
             if (month_data?.[i + 1] !== undefined) {
                 let image = document.createElement('img');
-                image.src = get_cover_image(month_data[i + 1]);
+                image.src = await get_cover_image(month_data[i + 1]);
+                
+                if ((my_mode != curr_mode) || (my_date != date)) {
+                    return;
+                }
+                
                 image.dataset.id = i + 1;
-                image.addEventListener('click', (e) => {selected_day(e);});
+                //image.addEventListener('click', (e) => {selected_day(e);});
                 day.appendChild(image);
             }
         }
@@ -172,7 +199,9 @@ function show_month_view() {
     }
 }
 
-function show_year_view() {
+async function show_year_view() {
+    curr_token = await new Promise(r => chrome.identity.getAuthToken({ interactive: false }, r));
+
     els.day_view.classList.add('hidden');
     els.month_view.classList.add('hidden');
     els.year_view.classList.remove('hidden');
@@ -180,8 +209,8 @@ function show_year_view() {
 
     let year = date.year;
     let year_data
-    if (image_data?.[year] !== undefined) {
-        year_data = image_data[year];
+    if (images_data?.[year] !== undefined) {
+        year_data = images_data[year];
     }
     
     els.cal_label.textContent = date.toLocaleString('pt-BR', params = {year: 'numeric'});
@@ -189,9 +218,13 @@ function show_year_view() {
     let months = els.year_months;
     months.replaceChildren();
 
+    let my_mode = curr_mode;
+    let my_date = date;
+
     for (let i = 0; i < date.monthsInYear; i++) {
         let month = document.createElement('div');
         month.dataset.id = i + 1;
+        console.log(`creating ${i + 1}`);
         month.addEventListener('click', (e) => {selected_month(e);})
 
         let month_label = document.createElement('h2');
@@ -206,7 +239,6 @@ function show_year_view() {
             month_data = year_data[i + 1];
         }
 
-
         let num_days = month_date.daysInMonth;
         let start_blanks = month_date.with({ day: 1 }).dayOfWeek % 7
         let num_spaces = 7 * 6;
@@ -216,7 +248,12 @@ function show_year_view() {
             if ((j >= 0) && (j < num_days) && (month_data?.[j + 1] !== undefined)) {
                 let day_data = month_data[j + 1];
                 let image = document.createElement('img');
-                image.src = get_cover_image(day_data);
+                image.src = await get_cover_image(day_data);
+                
+                if ((my_mode != curr_mode) || (my_date != date)) {
+                    return;
+                }
+                
                 day.appendChild(image);
             }
 
@@ -229,7 +266,9 @@ function show_year_view() {
     }
 }
 
-function show_day_view() {
+async function show_day_view() {
+    curr_token = await new Promise(r => chrome.identity.getAuthToken({ interactive: false }, r));
+
     els.day_view.classList.remove('hidden');
     els.month_view.classList.add('hidden');
     els.year_view.classList.add('hidden');
@@ -239,8 +278,8 @@ function show_day_view() {
     let month = date.month;
     let day = date.day;
     let day_data = [];
-    if (image_data?.[year]?.[month]?.[day] !== undefined) {
-        day_data = image_data[year][month][day];
+    if (images_data?.[year]?.[month]?.[day] !== undefined) {
+        day_data = images_data[year][month][day];
     }
     
     els.cal_label.textContent = date.toLocaleString('pt-BR', params={month: 'long', year: 'numeric', day: 'numeric'}) + ` (${date.toLocaleString('pt-BR', params={weekday: 'short'})})`;
@@ -254,11 +293,18 @@ function show_day_view() {
     back_button.addEventListener('click', () => {selected_month(null);});
     image_list.appendChild(back_button);
 
-    for (const image_data of day_data) {
+    let my_mode = curr_mode;
+    let my_date = date;
+
+    for (const single_image_data of day_data) {
         let container = document.createElement('li');
         
         let image = document.createElement('img');
-        image.src = image_data.path;
+        image.src = await get_image(single_image_data.id);
+
+        if ((my_mode != curr_mode) || (my_date != date)) {
+            return;
+        }
 
         container.appendChild(image);
         image_list.appendChild(container);
@@ -319,7 +365,7 @@ function justify_day_view(height, gap) {
     }
 }
 
-function show_single_view() {
+async function show_single_view() {
     els.day_view.classList.add('hidden');
     els.month_view.classList.add('hidden');
     els.year_view.classList.add('hidden');
@@ -329,9 +375,9 @@ function show_single_view() {
     let month = date.month;
     let day = date.day;
     let single_img_data = {};
-    if (image_data?.[year]?.[month]?.[day]?.[img_id] !== undefined) {
-        single_img_data = image_data[year][month][day][img_id];
-        els.single_img.src = single_img_data.path;
+    if (images_data?.[year]?.[month]?.[day]?.[img_id] !== undefined) {
+        single_img_data = images_data[year][month][day][img_id];
+        els.single_img.src = await get_image(single_img_data.id);
     } else {
 
         return;
@@ -359,14 +405,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         prev_date: document.getElementById('prev-date'),
         next_date: document.getElementById('next-date'),
-        cal_label: document.getElementById('cal-label')
+        cal_label: document.getElementById('cal-label'),
+
+        update_images: document.getElementById('update-images')
     };
-    els.prev_date.addEventListener('click', () => {change_date(-1)})
-    els.next_date.addEventListener('click', () => {change_date(1)})
-    
+    els.prev_date.addEventListener('click', () => {change_date(-1)});
+    els.next_date.addEventListener('click', () => {change_date(1)});
+    els.update_images.addEventListener('click', () => {update_images_data()});
+
     show_month_weeks(els.month_weeks);
 
-    show_year_view();
+    show_view();
 });
 
 document.addEventListener('resize', () => {
