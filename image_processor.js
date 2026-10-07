@@ -2,6 +2,9 @@ let images_data = {};
 chrome.storage.local.get(['images_data'], (result) => {
   images_data = result.images_data || {};
 });
+chrome.storage.local.get(['folder_id'], (result) => {
+  FOLDER_ID = result.folder_id || null;
+});
 
 async function drive_request_data(fields, file = null, query = null) {
   let full_data = [];
@@ -13,7 +16,7 @@ async function drive_request_data(fields, file = null, query = null) {
   do {
     let url = `https://www.googleapis.com/drive/v3/files${file ? `/${file}` : ''}?${query ? `q=${encodeURIComponent(query)}&` : ''}fields=${fields}&pageSize=1000`;
     if (next_page_token) {
-      url += `&pageToken=${page_token}`;
+      url += `&pageToken=${next_page_token}`;
     }
 
     let response = await fetch(url, {
@@ -114,4 +117,11 @@ async function get_image(id) {
 
   const data = await drive_request_data(fields, file = id);
   return data[0].thumbnailLink;
+}
+
+async function get_folder_name(folder_id) {
+  const fields = "name";
+
+  const data = await drive_request_data(fields, file = folder_id);
+  return data[0].name;
 }

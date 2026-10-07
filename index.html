@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drive Viewer</title>
-
-    <script src="folder_id.js"></script>
+    
     <script src="image_processor.js"></script>
     <script src="script.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -16,9 +15,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 <body>
-    <button class="update-images" id="update-images">
-        <i class="material-symbols-outlined">refresh</i>
-    </button>
+    <div class="folder-buttons">
+        <p class="curr-folder-label" id="curr-folder-label">Photos and Videos</p>
+        <button class="folder-button" id="update-images">
+            <i class="material-symbols-outlined">refresh</i>
+        </button>
+        <button class="folder-button" id="change-folder">
+            <i class="material-symbols-outlined">folder</i>
+        </button>
+    </div>
+
+    <div class="select-folder-box hidden" id="select-folder-box">
+<!--         <div class="select-folder-options">
+            <button id="select-folder-pick">Pick Folder</button>   
+            <button id="select-folder-link">Use Link</button>
+        </div> -->
+        <div class="select-folder-link-box" id="select-folder-link-box">
+            <input type="text" id="select-folder-link-input" placeholder="Folder link...">
+            <button id="select-folder-link-submit">
+                <i class="material-symbols-outlined">check</i>
+            </button>
+        </div>
+    </div>
+
     <div class="main-view">
         <button class="change-date" id="prev-date">
             <i class="material-symbols-outlined">arrow_back</i>
@@ -38,12 +57,12 @@
 
                 </ol>
             </div>
-            <div class="day-view" id="day-view">
+            <div class="day-view hidden" id="day-view">
                 <ol id="day-images">
 
                 </ol>
             </div>
-            <div class="single-view" id="single-view">
+            <div class="single-view hidden" id="single-view">
                 <img id="single-img">
                 <div class="single-info">
 

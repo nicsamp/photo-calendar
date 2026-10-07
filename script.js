@@ -36,9 +36,10 @@ async function get_cover_image(day_data) {
     return await get_image(id);
 }
 
-function update_images_data() {
+async function update_images_data() {
     els.update_images.classList.add("loading");
     get_images_metadata();
+    els.curr_folder_label.textContent = await get_folder_name(FOLDER_ID);
     els.update_images.classList.remove("loading");
     show_view()
 }
@@ -224,7 +225,6 @@ async function show_year_view() {
     for (let i = 0; i < date.monthsInYear; i++) {
         let month = document.createElement('div');
         month.dataset.id = i + 1;
-        console.log(`creating ${i + 1}`);
         month.addEventListener('click', (e) => {selected_month(e);})
 
         let month_label = document.createElement('h2');
@@ -365,6 +365,29 @@ function justify_day_view(height, gap) {
     }
 }
 
+async function select_folder(source) {
+    let temp_folder_id;
+    if (source === 'link') {
+        try {
+            let base_link = els.select_link_input.value.trim().split('?')[0];
+            let split_link = base_link.split('/');
+            temp_folder_id = split_link.at(-1);
+            if (temp_folder_id === '') {
+                temp_folder_id = split_link.at(-2);
+            }
+        }
+        catch (error) {
+            console.error('Invalid link');
+            return;
+        }
+    }
+
+    FOLDER_ID = temp_folder_id;
+    chrome.storage.local.set({ 'folder_id': FOLDER_ID });
+    els.curr_folder_label.textContent = await get_folder_name(FOLDER_ID);
+    els.select_folder_box.classList.add('hidden');
+}
+
 async function show_single_view() {
     els.day_view.classList.add('hidden');
     els.month_view.classList.add('hidden');
@@ -407,11 +430,20 @@ document.addEventListener('DOMContentLoaded', () => {
         next_date: document.getElementById('next-date'),
         cal_label: document.getElementById('cal-label'),
 
-        update_images: document.getElementById('update-images')
+        update_images: document.getElementById('update-images'),
+        change_folder: document.getElementById('change-folder'),
+        curr_folder_label: document.getElementById('curr-folder-label'),
+    
+        select_folder_box: document.getElementById('select-folder-box'),
+        select_link_input: document.getElementById('select-folder-link-input'),
+        select_link_button: document.getElementById('select-folder-link-submit')
     };
     els.prev_date.addEventListener('click', () => {change_date(-1)});
     els.next_date.addEventListener('click', () => {change_date(1)});
     els.update_images.addEventListener('click', () => {update_images_data()});
+    els.change_folder.addEventListener('click', () => {els.select_folder_box.classList.remove('hidden')});
+
+    els.select_link_button.addEventListener('click', () => {select_folder('link')});
 
     show_month_weeks(els.month_weeks);
 
