@@ -2,12 +2,20 @@
     box-sizing: border-box;
 }
 
+.hidden {
+    display: none !important;
+}
+
 :root {
-    --bg-color: lightgray;
-    --content-color: darkgray;
-    --border-color: rgb(105, 105, 105);
-    --thin-border-color: gray;
-    --font-white: whitesmoke;
+    --bg-color: #F2F2F2;
+    --bg2-color: #E5E5E5;
+    --bg3-color: hsl(114, 33%, 76%);
+    --border-color: #48634B;
+    --thin-border-color: #D3D3D3;
+    --border2-color: hsl(114, 33%, 60%);
+    --font-color: #000000;
+    --font-color-inactive: #808080;
+    --alert: #FF0000;
 
     --font-main: 'Noto Sans', system-ui, -apple-system, sans-serif;
 }
@@ -26,21 +34,15 @@ body {
     position: relative;
 
     font-family: var(--font-main);
-    background: black;
-}
-
-.hidden {
-    display: none !important;
+    background: var(--bg-color);
 }
 
 .select-folder-box {
-    width: 80vw;
-    height: 80vh;
-    border: 3px solid var(--border-color);
+    width: clamp(200px, 80vw, 80vw);
+    height: clamp(200px, 80vh, 80vh);
+    border: 2px solid var(--border-color);
+    box-shadow: 1px 1px 5px var(--thin-border-color);
     border-radius: 10px;
-
-    display: flex;
-    flex-direction: column;
 
     position: absolute;
     top: 50%;
@@ -50,6 +52,34 @@ body {
     background: var(--bg-color);
 }
 
+.select-folder-close {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: absolute;
+    top: 5px;
+    right: 5px;
+
+    background: none;
+    font-size: 2rem;
+    color: var(--alert);
+}
+
+.icon-button:hover {
+    background: var(--bg2-color);
+}
+.icon-button:active {
+    background: var(--bg3-color);
+}
+
+/*
 .select-folder-options {
     width: 100%;
     height: 48px;
@@ -75,137 +105,199 @@ body {
 }
 
 .select-folder-options button:hover {
-    background: var(--content-color);
-}
+    background: var(--bg3-color);
+}*/
 
 .select-folder-link-box {
     width: 100%;
-    flex: 1;
+    height: 100%;
 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 16px;
 }
 
 .select-folder-link-box input {
-    width: 60%;
+    width: 80%;
     border: none;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--border2-color);
     border-radius: 3px;
-    
+    box-shadow: 1px 1px 5px var(--thin-border-color);
+
     font-size: 1.2rem;
+    background: var(--bg2-color);
+}
+
+.select-folder-link-box input:hover {
+    background: var(--bg3-color);
 }
 
 .select-folder-link-box input:focus {
     outline: none;
+    border-bottom: 3px solid var(--border-color);
 }
 
 .select-folder-link-box button {
     width: 30%;
     height: 36px;
     padding: 0;
-    border: 2px solid var(--thin-border-color);
+    border: 2px solid var(--border2-color);
     border-radius: 5px;
+    box-shadow: 1px 1px 5px var(--thin-border-color);
 
-    background: var(--bg-color);
+    background: var(--bg2-color);
     font-size: 1.2rem;
 }
 
+.select-folder-link-box button:hover {
+    background: var(--bg3-color);
+}
+
+.select-folder-link-box button:active {
+    border-color: var(--border-color);
+}
+
+.select-folder-link-loader {
+    width: 36px;
+    height: 36px;
+    border: 8px solid var(--bg2-color);
+    border-top: 8px solid var(--bg3-color);
+    border-radius: 50%;
+    box-shadow: 1px 1px 5px var(--thin-border-color);
+
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+
+
 .folder-buttons {
     width: 100%;
-    padding: 10px;
+    padding: 15px;
+    border: 1px solid var(--thin-border-color);
 
     display: flex;
+    align-items: center;
     gap: 10px;
+
+    background: var(--bg-color);
 }
 
 .curr-folder-label {
-    color: white;
+    color: var(--font-color);
+    font-weight: bold;
+    font-size: 1rem;
 }
 
-.folder-button {
+.folder-button-change {
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--thin-border-color);
+    border-radius: 3px;
+    box-shadow: 1px 1px 5px var(--thin-border-color);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    background: var(--bg2-color);
+    font-size: 1.5rem;
+}
+
+.folder-button-change:hover {
+    background: var(--bg3-color);
+}
+.folder-button-change:active {
+    border: 1px solid var(--border2-color);
+}
+
+
+.folder-button-update {
     width: 36px;
     height: 36px;
     padding: 0;
-    border: 1px solid var(--thin-border-color);
+    border: none;
     border-radius: 50%;
-    margin: 8px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: var(--bg-color);
-    font-size: 1.5rem;
-}
-.update-images:hover {
-    background: var(--content-color);
-    border-color: var(--border-color);
+    background: none;
+    font-size: 2rem;
 }
 
 .loading {
-    background: var(--thin-border-color-color);
+    color: var(--font-color-inactive);
+    animation: spin 2s linear infinite;
 }
 
-.main-view {
+
+.main-box {
     width: 100%;
     flex: 1;
     min-height: 0;
-    padding: 10px 0;
+    padding: 10px;
 
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 10px;
 }
 
-.change-date {
+.main-change-date {
     width: 36px;
     height: 36px;
     padding: 0;
-    border: 1px solid var(--thin-border-color);
+    border: none;
     border-radius: 50%;
-    margin: 8px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: var(--bg-color);
-    font-size: 1.5rem;
-}
-
-.change-date:hover {
-    background: var(--content-color);
-    border-color: var(--border-color);
+    background: none;
+    font-size: 2rem;
 }
 
 .calendars {
     flex: 1;
     height: 100%;
+
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
-.cal-label {
+.calendar-label {
     width: 100%;
-    flex-shrink: 0;
     margin: 0;
-    margin-bottom: 10px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    color: white;
+    color: black;
+    font-size: 2rem;
 }
 
+
+
 .month-view {
+    width: 100%;
+
     border: 3px solid var(--border-color);
     border-radius: 10px;
-
-    background: var(--bg-color);
 }
 
 .month-week-box {
@@ -213,11 +305,10 @@ body {
     height: fit-content;
     padding: 0;
     border-bottom: 3px solid var(--border-color);
-    border-radius: 10px 10px 0 0;
+    border-radius: 8px 8px 0 0;
     margin: 0;
 
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    display: flex;
     gap: 1px;
     overflow: hidden;
     
@@ -226,22 +317,22 @@ body {
 
 .month-week-box li {
     flex: 1;
-    height: 30px;
+    height: fit-content;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: var(--content-color);
+    background: var(--bg3-color);
     font-size: 1.2rem;
 
 }
 
+
 .month-days-box {
     width: 100%;
-    height: fit-content;
     padding: 0;
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 8px 8px;
     margin: 0;
     
     display: grid;
@@ -255,7 +346,6 @@ body {
 .month-days-box li {
     width: 100%;
     aspect-ratio: 4 / 3;
-    max-height: calc(100vh / 7);
 
     display: flex;
     align-items: center;
@@ -267,12 +357,12 @@ body {
 }
 
 .month-days-box li.blank-space {
-    background: var(--thin-border-color);
-    color: var(--font-white);
+    background: var(--bg2-color);
+    color: var(--font-color);
     font-size: 2rem;
 }
 
-li p {
+.month-days-box li p {
     margin: 0;
 
     position: absolute;
@@ -280,12 +370,12 @@ li p {
     left: 2px;
 
     
-    font-size: 1.2em;
+    font-size: 1.4em;
     font-weight: bolder;
-    -webkit-text-stroke: 1.5px whitesmoke;
+    -webkit-text-stroke: 1px var(--bg-color);
 }
 
-li img {
+.month-days-box li img {
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -294,20 +384,20 @@ li img {
     display: block;
 }
 
+
+
 .year-view {
     width: 100%;
 
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
 }
 
 .year-months-box {
-    flex: 1;
+    width: 100%;
     height: fit-content;
     max-height: 100%;
     padding: 10px;
-    border: 3px solid var(--border-color);
+    border: 3px solid var(--border2-color);
     border-radius: 10px;
     margin: 0;
     
@@ -317,7 +407,7 @@ li img {
     overflow-y: auto;
     overflow-x: hidden;
 
-    background: var(--content-color);
+    background: var(--bg3-color);
 }
 
 .year-months-box div {
@@ -325,13 +415,15 @@ li img {
 
     border: 3px solid var(--border-color);
     border-radius: 10px;
+
+    overflow: hidden;
 }
 
 .year-months-box div ol {
     width: 100%;
     height: fit-content;
     padding: 0;
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 8px 8px;
     margin: 0;
     
     display: grid;
@@ -360,24 +452,25 @@ li img {
     border: none;
 
     display: block;
-    background: var(--thin-border-color);
 }
 
 .year-months-box div h2 {
     width: 100%;
     padding: 0;
     border-bottom: 3px solid var(--border-color);
-    border-radius: 10px 10px 0 0;
+    border-radius: 8px 8px 0 0;
     margin: 0;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: var(--content-color);
-    font-size: 1rem;
+    background: var(--bg3-color);
+    font-size: 1.2rem;
 }
 
+
+/*
 .day-view {
     width: 100%;
 
@@ -402,7 +495,7 @@ li img {
     overflow-x: hidden;
 
     list-style-type: none;
-    background: var(--content-color);
+    background: var(--bg3-color);
 }
 
 .day-view ol .day-back-button {
@@ -437,6 +530,8 @@ li img {
     background: var(--thin-border-color);
 }
 
+
+
 .single-view {
     width: 100%;
 }
@@ -451,3 +546,4 @@ li img {
     display: block;
     background: var(--thin-border-color); 
 }
+    */

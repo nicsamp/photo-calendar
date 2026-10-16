@@ -435,13 +435,16 @@ document.addEventListener('DOMContentLoaded', () => {
         curr_folder_label: document.getElementById('curr-folder-label'),
     
         select_folder_box: document.getElementById('select-folder-box'),
+        select_folder_close: document.getElementById('select-folder-close'),
         select_link_input: document.getElementById('select-folder-link-input'),
-        select_link_button: document.getElementById('select-folder-link-submit')
+        select_link_button: document.getElementById('select-folder-link-submit'),
+        select_link_loader: document.getElementById('select-folder-link-loader')
     };
     els.prev_date.addEventListener('click', () => {change_date(-1)});
     els.next_date.addEventListener('click', () => {change_date(1)});
     els.update_images.addEventListener('click', () => {update_images_data()});
     els.change_folder.addEventListener('click', () => {els.select_folder_box.classList.remove('hidden')});
+    els.select_folder_close.addEventListener('click', () => {els.select_folder_box.classList.add('hidden')});
 
     els.select_link_button.addEventListener('click', () => {select_folder('link')});
 

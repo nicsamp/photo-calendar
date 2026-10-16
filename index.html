@@ -16,12 +16,12 @@
 </head>
 <body>
     <div class="folder-buttons">
-        <p class="curr-folder-label" id="curr-folder-label">Photos and Videos</p>
-        <button class="folder-button" id="update-images">
-            <i class="material-symbols-outlined">refresh</i>
-        </button>
-        <button class="folder-button" id="change-folder">
+        <button class="folder-button-change" id="change-folder">
             <i class="material-symbols-outlined">folder</i>
+            <p class="curr-folder-label" id="curr-folder-label">No folder selected</p>
+        </button>
+        <button class="folder-button-update icon-button" id="update-images">
+            <i class="material-symbols-outlined">refresh</i>
         </button>
     </div>
 
@@ -30,20 +30,24 @@
             <button id="select-folder-pick">Pick Folder</button>   
             <button id="select-folder-link">Use Link</button>
         </div> -->
+        <button class="select-folder-close icon-button" id="select-folder-close">
+            <i class="material-symbols-outlined">close</i>
+        </button>
         <div class="select-folder-link-box" id="select-folder-link-box">
-            <input type="text" id="select-folder-link-input" placeholder="Folder link...">
+            <input type="text" id="select-folder-link-input" placeholder="drive.google.com/drive/folders/..." />
             <button id="select-folder-link-submit">
                 <i class="material-symbols-outlined">check</i>
             </button>
+            <div class="select-folder-link-loader hidden" id="select-folder-link-loader"></div>
         </div>
     </div>
 
-    <div class="main-view">
-        <button class="change-date" id="prev-date">
+    <div class="main-box">
+        <button class="main-change-date icon-button" id="prev-date">
             <i class="material-symbols-outlined">arrow_back</i>
         </button>
         <div class="calendars">
-            <h1 class="cal-label" id="cal-label">?</h1>
+            <h1 class="calendar-label" id="cal-label">?</h1>
             <div class="month-view hidden" id="month-view">
                 <ol class="month-week-box" id="month-week-box">
 
@@ -69,7 +73,7 @@
                 </div>
             </div>
         </div>
-        <button class="change-date" id="next-date">
+        <button class="main-change-date icon-button" id="next-date">
             <i class="material-symbols-outlined">arrow_forward</i>
         </button>
     </div>
