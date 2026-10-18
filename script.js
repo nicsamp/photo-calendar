@@ -189,8 +189,8 @@ async function show_month_view() {
         }
         else if (i === -start_blanks) {
             day.classList.add('blank-space');
-            day.innerHTML = '<i class="material-symbols-outlined">event_repeat</i>';
-            day.addEventListener('click', selected_year);
+            day.innerHTML = '<button class="icon-button month-back"><i class="material-symbols-outlined">event_repeat</i></button>';
+            day.children[0].addEventListener('click', selected_year);
         }
         else {
             day.classList.add('blank-space');

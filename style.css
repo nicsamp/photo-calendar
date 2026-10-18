@@ -52,7 +52,7 @@ body {
     background: var(--bg-color);
 }
 
-.select-folder-close {
+.icon-button {
     width: 36px;
     height: 36px;
     padding: 0;
@@ -63,13 +63,17 @@ body {
     align-items: center;
     justify-content: center;
 
+    background: none;
+    font-size: 2rem;
+    color: var(--font-color);
+}
+
+.select-folder-close {
     position: absolute;
     top: 5px;
     right: 5px;
 
-    background: none;
-    font-size: 2rem;
-    color: var(--alert);
+    color: var(--alert) !important;
 }
 
 .icon-button:hover {
@@ -219,22 +223,6 @@ body {
     border: 1px solid var(--border2-color);
 }
 
-
-.folder-button-update {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: none;
-    font-size: 2rem;
-}
-
 .loading {
     color: var(--font-color-inactive);
     animation: spin 2s linear infinite;
@@ -251,21 +239,6 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-}
-
-.main-change-date {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: none;
-    font-size: 2rem;
 }
 
 .calendars {
@@ -358,8 +331,18 @@ body {
 
 .month-days-box li.blank-space {
     background: var(--bg2-color);
-    color: var(--font-color);
-    font-size: 2rem;
+}
+
+button.month-back {
+    font-size: 1.8rem;
+}
+
+button.month-back:hover {
+    background: var(--bg-color);
+}
+
+button.month-back:active {
+    background: var(--bg3-color);
 }
 
 .month-days-box li p {
@@ -413,10 +396,14 @@ body {
 .year-months-box div {
     height: fit-content;
 
-    border: 3px solid var(--border-color);
+    border: 3px solid var(--border2-color);
     border-radius: 10px;
 
     overflow: hidden;
+}
+
+.year-months-box div:hover {
+    border: 3px solid var(--border-color);
 }
 
 .year-months-box div ol {
@@ -457,7 +444,7 @@ body {
 .year-months-box div h2 {
     width: 100%;
     padding: 0;
-    border-bottom: 3px solid var(--border-color);
+    border-bottom: 3px solid var(--border2-color);
     border-radius: 8px 8px 0 0;
     margin: 0;
 
