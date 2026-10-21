@@ -1,12 +1,27 @@
 let els = {};
-let date = Temporal.PlainDate.from('2010-03-04')
+let date = Temporal.Now.plainDateISO();
 const WEEKS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 let curr_mode = 0; //year = 0, month = 1, day = 2, single = 3
 let img_id = 0;
 let curr_token = null;
 
+let FOLDER_ID = null;
+let images_data = {};
+
 const TARGET_HEIGHT = 200;
 const GAP = 8;
+
+function toggle_light_dark_mode() {
+    els.body.classList.toggle('dark-mode');
+    if (els.body.classList.contains('dark-mode')) {
+        els.dark_icon.classList.remove('hidden');
+        els.light_icon.classList.add('hidden');
+    }
+    else {
+        els.light_icon.classList.remove('hidden');
+        els.dark_icon.classList.add('hidden');
+    }
+}
 
 function wait_for_images(images) {
     const promises = Array.from(images).map(img => {
@@ -37,8 +52,9 @@ async function get_cover_image(day_data) {
 }
 
 async function update_images_data() {
+    els.curr_folder_label.textContent = "Loading folder...";
     els.update_images.classList.add("loading");
-    get_images_metadata();
+    await get_images_metadata();
     els.curr_folder_label.textContent = await get_folder_name(FOLDER_ID);
     els.update_images.classList.remove("loading");
     show_view()
@@ -232,6 +248,8 @@ async function show_year_view() {
         month.appendChild(month_label)
 
         let month_days = document.createElement('ol');
+        month.appendChild(month_days);
+        months.appendChild(month);
         
         let month_date = date.with({ month: i + 1});
         let month_data;
@@ -259,10 +277,6 @@ async function show_year_view() {
 
             month_days.appendChild(day);
         }
-
-        month.appendChild(month_days)
-
-        months.appendChild(month);
     }
 }
 
@@ -365,7 +379,18 @@ function justify_day_view(height, gap) {
     }
 }
 
+function hide_select_folder_box() {
+    els.select_folder_box.classList.add('hidden');
+    els.select_link_button.classList.remove('hidden');
+    els.select_link_loader.classList.add('hidden');
+    els.select_link_input.value = '';
+    els.select_link_input.classList.add('input-error');
+}
+
 async function select_folder(source) {
+    els.select_link_button.classList.add('hidden');
+    els.select_link_loader.classList.remove('hidden');
+
     let temp_folder_id;
     if (source === 'link') {
         try {
@@ -378,14 +403,20 @@ async function select_folder(source) {
         }
         catch (error) {
             console.error('Invalid link');
+            els.select_link_button.classList.remove('hidden');
+            els.select_link_loader.classList.add('hidden');
+            els.select_link_input.value = '';
+            els.select_link_input.classList.add('input-error');
             return;
         }
     }
 
     FOLDER_ID = temp_folder_id;
     chrome.storage.local.set({ 'folder_id': FOLDER_ID });
-    els.curr_folder_label.textContent = await get_folder_name(FOLDER_ID);
-    els.select_folder_box.classList.add('hidden');
+
+    hide_select_folder_box();
+
+    await update_images_data();
 }
 
 async function show_single_view() {
@@ -411,8 +442,12 @@ async function show_single_view() {
     els.cal_label.textContent = new_date.toLocaleString('pt-BR', params={month: 'long', year: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'}) + ` (${date.toLocaleString('pt-BR', params={weekday: 'short'})})`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     els = {
+        body: document.body,
+        light_icon: document.getElementById('light-mode-icon'),
+        dark_icon: document.getElementById('dark-mode-icon'),
+
         month_view: document.getElementById('month-view'),
         month_weeks: document.getElementById('month-week-box'),
         month_days: document.getElementById('month-days-box'),
@@ -433,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         update_images: document.getElementById('update-images'),
         change_folder: document.getElementById('change-folder'),
         curr_folder_label: document.getElementById('curr-folder-label'),
+        light_dark_mode: document.getElementById('light-dark-mode'),
     
         select_folder_box: document.getElementById('select-folder-box'),
         select_folder_close: document.getElementById('select-folder-close'),
@@ -442,15 +478,36 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     els.prev_date.addEventListener('click', () => {change_date(-1)});
     els.next_date.addEventListener('click', () => {change_date(1)});
-    els.update_images.addEventListener('click', () => {update_images_data()});
+    els.update_images.addEventListener('click', async () => {update_images_data()});
     els.change_folder.addEventListener('click', () => {els.select_folder_box.classList.remove('hidden')});
-    els.select_folder_close.addEventListener('click', () => {els.select_folder_box.classList.add('hidden')});
+    els.select_folder_close.addEventListener('click', () => {hide_select_folder_box()});
 
-    els.select_link_button.addEventListener('click', () => {select_folder('link')});
+    els.select_link_button.addEventListener('click', async () => {select_folder('link')});
 
     show_month_weeks(els.month_weeks);
 
-    show_view();
+    curr_token = await new Promise(r => chrome.identity.getAuthToken({ interactive: false }, r));
+
+    chrome.storage.local.get(['images_data'], (result) => {
+        images_data = result.images_data || {};
+        change_date(-1);
+    });
+    chrome.storage.local.get(['folder_id'], async (result) => {
+        FOLDER_ID = result.folder_id || null;
+        if (FOLDER_ID) {
+            els.curr_folder_label.textContent = "Loading folder...";
+            els.curr_folder_label.textContent = await get_folder_name(FOLDER_ID);
+        }
+    });
+
+    if (localStorage.getItem('theme') === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        els.body.classList.add("dark-mode");
+        els.light_icon.classList.add('hidden');
+    }
+    else {
+        els.dark_icon.classList.add('hidden');
+    }
+    els.light_dark_mode.addEventListener('click', toggle_light_dark_mode);
 });
 
 document.addEventListener('resize', () => {

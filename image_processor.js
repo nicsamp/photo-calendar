@@ -1,11 +1,3 @@
-let images_data = {};
-chrome.storage.local.get(['images_data'], (result) => {
-  images_data = result.images_data || {};
-});
-chrome.storage.local.get(['folder_id'], (result) => {
-  FOLDER_ID = result.folder_id || null;
-});
-
 async function drive_request_data(fields, file = null, query = null) {
   let full_data = [];
   let next_page_token = null;
@@ -48,7 +40,6 @@ async function drive_request_images_recursive(fields, query, folder_id) {
     const new_query = `'${curr_folder_id}' in parents and (mimeType contains 'image/' or mimeType = 'application/vnd.google-apps.folder')${query ? ` and ${query}` : ''}`;
   
     const full_folder_data = await drive_request_data(fields, null, new_query);
-    console.log(full_folder_data);
     for (const folder_data of full_folder_data) {
       for (const file of folder_data.files) {
         if (file.mimeType === 'application/vnd.google-apps.folder') {

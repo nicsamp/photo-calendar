@@ -20,8 +20,23 @@
     --font-main: 'Noto Sans', system-ui, -apple-system, sans-serif;
 }
 
+body.dark-mode {
+    --bg-color: #1a1a1a;
+    --bg2-color: #343434;
+    /*--bg3-color: hsl(114, 33%, 24%);
+    --border-color: #729c76;*/
+    --bg3-color: hsl(114, 50%, 55%);
+    --border-color: #b9f6c0;
+    --thin-border-color: #505050;
+    --border2-color: hsl(114, 50%, 40%);
+    --font-color: #FFFFFF;
+    --font-color-inactive: #909090;
+    --alert: #FF0000;
+}
+
 .material-symbols-outlined {
     font-size: inherit !important;
+    color: inherit !important;
 }
 
 body {
@@ -132,6 +147,10 @@ body {
 
     font-size: 1.2rem;
     background: var(--bg2-color);
+    color: var(--font-color);
+    placeholder {
+        color: var(--font-color-inactive);
+    }
 }
 
 .select-folder-link-box input:hover {
@@ -153,6 +172,7 @@ body {
 
     background: var(--bg2-color);
     font-size: 1.2rem;
+    color: var(--font-color);
 }
 
 .select-folder-link-box button:hover {
@@ -185,7 +205,7 @@ body {
 .folder-buttons {
     width: 100%;
     padding: 15px;
-    border: 1px solid var(--thin-border-color);
+    border-bottom: 1px solid var(--thin-border-color);
 
     display: flex;
     align-items: center;
@@ -213,6 +233,7 @@ body {
     gap: 5px;
 
     background: var(--bg2-color);
+    color: var(--font-color);
     font-size: 1.5rem;
 }
 
@@ -226,6 +247,17 @@ body {
 .loading {
     color: var(--font-color-inactive);
     animation: spin 2s linear infinite;
+}
+
+
+
+.setting-buttons {
+    flex: 1;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 
@@ -260,7 +292,7 @@ body {
     align-items: center;
     justify-content: center;
 
-    color: black;
+    color: var(--font-color);
     font-size: 2rem;
 }
 
@@ -319,6 +351,7 @@ body {
 .month-days-box li {
     width: 100%;
     aspect-ratio: 4 / 3;
+    max-height: calc((100vh - 200px) / 6);
 
     display: flex;
     align-items: center;
