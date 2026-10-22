@@ -1,7 +1,7 @@
 let els = {};
 let date = Temporal.Now.plainDateISO();
 const WEEKS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-let curr_mode = 0; //year = 0, month = 1, day = 2, single = 3
+let curr_mode = 1; //year = 0, month = 1, day = 2, single = 3
 let img_id = 0;
 let curr_token = null;
 
@@ -191,15 +191,15 @@ async function show_month_view() {
             day.appendChild(day_label);
 
             if (month_data?.[i + 1] !== undefined) {
-                let image = document.createElement('img');
-                image.src = await get_cover_image(month_data[i + 1]);
-                
                 if ((my_mode != curr_mode) || (my_date != date)) {
                     return;
                 }
-                
+                day.classList.add('image-space');
+                let image = document.createElement('img');
+                image.src = await get_cover_image(month_data[i + 1]);
+
                 image.dataset.id = i + 1;
-                //image.addEventListener('click', (e) => {selected_day(e);});
+                image.addEventListener('click', (e) => {selected_day(e);});
                 day.appendChild(image);
             }
         }
@@ -299,62 +299,69 @@ async function show_day_view() {
     els.cal_label.textContent = date.toLocaleString('pt-BR', params={month: 'long', year: 'numeric', day: 'numeric'}) + ` (${date.toLocaleString('pt-BR', params={weekday: 'short'})})`;
 
     let image_list = els.day_image_list;
+    let list_w = image_list.clientWidth - 26;
     image_list.replaceChildren();
-
-    let back_button = document.createElement('li');
-    back_button.innerHTML = '<i class="material-symbols-outlined">event_repeat</i>';
-    back_button.classList.add('day-back-button');
-    back_button.addEventListener('click', () => {selected_month(null);});
-    image_list.appendChild(back_button);
 
     let my_mode = curr_mode;
     let my_date = date;
 
+    let image_queue = []
+    let curr_w = 0;
+
     for (const single_image_data of day_data) {
+        if ((my_mode != curr_mode) || (my_date != date)) {
+            return;
+        }
         let container = document.createElement('li');
         
         let image = document.createElement('img');
         image.src = await get_image(single_image_data.id);
+        const ratio = single_image_data.ratio;
+        image.dataset.ratio = ratio;
 
-        if ((my_mode != curr_mode) || (my_date != date)) {
-            return;
+        const new_w = ratio * TARGET_HEIGHT;
+
+        if ((curr_w + new_w + image_queue.length * GAP) > list_w) {
+            const upscale = (list_w - (image_queue.length - 1) * GAP) / curr_w;
+            image_queue.forEach((img_item) => {
+                img_item.img.style.width = `${img_item.new_w * upscale}px`;
+                img_item.img.style.height = `${TARGET_HEIGHT * upscale}px`;
+                image_list.appendChild(img_item.container);
+            });
+
+            image_queue = [];
+            curr_w = 0;
         }
 
         container.appendChild(image);
-        image_list.appendChild(container);
+        image_queue.push({ img: image, container: container, new_w: new_w });
+        curr_w += new_w;
     }
 
-    wait_for_images(image_list.querySelectorAll('img')).then(() => {
-        justify_day_view(TARGET_HEIGHT, GAP);
-    });
+    if (image_queue.length > 0) {
+        image_queue.forEach((img_item) => {
+                img_item.img.style.width = `${img_item.new_w}px`;
+                img_item.img.style.height = `${TARGET_HEIGHT}px`;
+                image_list.appendChild(img_item.container);
+        });
+    }
 }
 
 function justify_day_view(height, gap) {
-    if (curr_mode !== 2) {
-        return;
-    }
-
     let image_list = els.day_image_list;
-    let list_w = image_list.clientWidth - 25;
+    let list_w = image_list.clientWidth - 26;
     let images = Array.from(image_list.children);
 
     let curr_row = [];
     let curr_row_w = 0;
-    let extra_w = 0;
 
     images.forEach((item, i) => {
         const img = item.querySelector('img');
-
-        if (img === null) {
-            extra_w = item.clientWidth;
-        }
-        else {
-
-        const ratio = img.naturalWidth / img.naturalHeight;
+        const ratio = img.dataset.ratio;
         const new_w = ratio * height;
 
-        if ((curr_row_w + new_w + extra_w + (curr_row.length * gap)) > list_w) {
-            let upscale = (list_w - (curr_row.length - 1) * gap) / (curr_row_w + extra_w);
+        if ((curr_row_w + new_w + curr_row.length * gap) > list_w) {
+            let upscale = (list_w - (curr_row.length - 1) * gap) / curr_row_w;
             curr_row.forEach((row_item) => {
                 row_item.img.style.width = `${row_item.new_w * upscale}px`;
                 row_item.img.style.height = `${height * upscale}px`;
@@ -362,13 +369,10 @@ function justify_day_view(height, gap) {
 
             curr_row = [];
             curr_row_w = 0;
-            extra_w = 0;
         }
 
         curr_row.push({ img: img, new_w: new_w });
         curr_row_w += new_w;
-
-        }
     });
 
     if (curr_row.length > 0) {
@@ -457,6 +461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         day_view: document.getElementById('day-view'),
         day_image_list: document.getElementById('day-images'),
+        day_back: document.getElementById('day-back-button'),
 
         single_view: document.getElementById('single-view'),
         single_img: document.getElementById('single-img'),
@@ -476,6 +481,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         select_link_button: document.getElementById('select-folder-link-submit'),
         select_link_loader: document.getElementById('select-folder-link-loader')
     };
+    els.day_back.addEventListener('click', () => {selected_month(null);});
+
     els.prev_date.addEventListener('click', () => {change_date(-1)});
     els.next_date.addEventListener('click', () => {change_date(1)});
     els.update_images.addEventListener('click', async () => {update_images_data()});
@@ -510,6 +517,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     els.light_dark_mode.addEventListener('click', toggle_light_dark_mode);
 });
 
-document.addEventListener('resize', () => {
+window.addEventListener('resize', () => {
     justify_day_view(TARGET_HEIGHT, GAP);
 });

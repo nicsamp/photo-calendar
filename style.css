@@ -25,10 +25,10 @@ body.dark-mode {
     --bg2-color: #343434;
     /*--bg3-color: hsl(114, 33%, 24%);
     --border-color: #729c76;*/
-    --bg3-color: hsl(114, 50%, 55%);
+    --bg3-color: hsl(114, 50%, 50%);
     --border-color: #b9f6c0;
     --thin-border-color: #505050;
-    --border2-color: hsl(114, 50%, 40%);
+    --border2-color: hsl(114, 50%, 35%);
     --font-color: #FFFFFF;
     --font-color-inactive: #909090;
     --alert: #FF0000;
@@ -330,7 +330,7 @@ body {
 
     background: var(--bg3-color);
     font-size: 1.2rem;
-
+    color: var(--font-color);
 }
 
 
@@ -362,6 +362,10 @@ body {
     background: var(--bg-color);
 }
 
+.month-days-box li.image-space:hover {
+    border: 3px solid var(--border-color);
+}
+
 .month-days-box li.blank-space {
     background: var(--bg2-color);
 }
@@ -389,6 +393,7 @@ button.month-back:active {
     font-size: 1.4em;
     font-weight: bolder;
     -webkit-text-stroke: 1px var(--bg-color);
+    color: var(--font-color);
 }
 
 .month-days-box li img {
@@ -424,6 +429,7 @@ button.month-back:active {
     overflow-x: hidden;
 
     background: var(--bg3-color);
+    color: var(--font-color);
 }
 
 .year-months-box div {
@@ -490,64 +496,67 @@ button.month-back:active {
 }
 
 
-/*
+
 .day-view {
     width: 100%;
+    border: 3px solid var(--border2-color);
+    border-radius: 10px;
 
     display: flex;
     flex-direction: column;
+
     overflow: hidden;
+    background: var(--bg3-color);
+}
+
+.day-controls-box {
+    width: 100%;
+    padding: 8px;
+    border-bottom: 2px solid var(--border2-color);
+    border-radius: 8px 8px 0 0;
+
+    background: none;
+}
+
+.day-controls-box button {
+    font-size: 1.8rem;
 }
 
 .day-view ol {
     width: 100%;
-    height: auto;
-    max-height: 100%;
+    flex: 1;
     padding: 10px;
-    border: 3px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: 0 0 8px 8px;
     margin: 0;
     
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
 
     list-style-type: none;
-    background: var(--bg3-color);
-}
-
-.day-view ol .day-back-button {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    border-radius: 10px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: var(--bg-color);
-    font-size: 1.8rem;
+    background: none;
 }
 
 .day-view ol li {
     width: fit-content;
     height: fit-content;
     border-radius: 10px;
+    box-shadow: 1px 1px 5px var(--thin-border-color);
 
+    overflow: hidden;
     background: var(--bg-color);
 }
 
 .day-view ol li img {
     height: 100%;
     object-fit: contain;
-    border: none;
-    border-radius: 10px;
+    border: 2px solid var(--border2-color);
+    border-radius: 8px;
 
     display: block;
-    background: var(--thin-border-color);
+    background: none;
 }
 
 
@@ -566,4 +575,3 @@ button.month-back:active {
     display: block;
     background: var(--thin-border-color); 
 }
-    */

@@ -68,7 +68,8 @@ async function get_images_metadata() {
       let object = {'id': file.id,
                     'h': hour,
                     'm': minute,
-                    's': second
+                    's': second,
+                    'ratio': file.imageMediaMetadata.width / file.imageMediaMetadata.height
       }
       if (!images_data[year]) {
         images_data[year] = {};
