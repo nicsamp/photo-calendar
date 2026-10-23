@@ -63,6 +63,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 99;
 
     background: var(--bg-color);
 }
@@ -81,6 +82,11 @@ body {
     background: none;
     font-size: 2rem;
     color: var(--font-color);
+}
+
+.icon-button:disabled {
+    color: var(--font-color-inactive);
+    background: none !important;
 }
 
 .select-folder-close {
@@ -441,7 +447,7 @@ button.month-back:active {
     overflow: hidden;
 }
 
-.year-months-box div:hover {
+.year-months-box div.month-button:hover {
     border: 3px solid var(--border-color);
 }
 
@@ -531,8 +537,10 @@ button.month-back:active {
     
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 8px;
-    overflow-y: auto;
+    overflow-y: scroll;
+    scrollbar-width: thin;
     overflow-x: hidden;
 
     list-style-type: none;

@@ -1,5 +1,7 @@
 let els = {};
-let date = Temporal.Now.plainDateISO();
+let date = null;
+let first_date = null;
+let last_date = null;
 const WEEKS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 let curr_mode = 1; //year = 0, month = 1, day = 2, single = 3
 let img_id = 0;
@@ -57,7 +59,8 @@ async function update_images_data() {
     await get_images_metadata();
     els.curr_folder_label.textContent = await get_folder_name(FOLDER_ID);
     els.update_images.classList.remove("loading");
-    show_view()
+    find_first_last_dates();
+    show_view();
 }
 
 function show_view() {
@@ -72,33 +75,86 @@ function show_view() {
     }
 }
 
+function find_first_last_dates() {
+    let first = null;
+    let last = null;
+
+    for (const year of Object.keys(images_data)) {
+        if (year == -1) {
+            continue;
+        }
+        for (const month of Object.keys(images_data[year])) {
+            for (const day of Object.keys(images_data[year][month])) {
+                const curr_date = Temporal.PlainDate.from({ year: parseInt(year), month: parseInt(month), day: parseInt(day) });
+                if (!first || (Temporal.PlainDate.compare(curr_date, first) === -1)) {
+                    first = curr_date;
+                }
+                if (!last ||  (Temporal.PlainDate.compare(curr_date, last) === 1)) {
+                    last = curr_date;
+                }
+            }
+        }
+    }
+
+    first_date = first;
+    last_date = last;
+    date = last_date;
+    els.next_date.disabled = true;
+}
+
 function change_date(change) {
-    let today = Temporal.Now.plainDateISO();
     if (curr_mode === 0) {
         date = date.add({ years: change });
         while (images_data?.[date.year] === undefined) {
             date = date.add({ years: change });
-            if (date.year < 1970 || date.year > today.year) {
-                break;
-            }
+        }
+        if (date.year == first_date.year) {
+            els.prev_date.disabled = true;
+        }
+        else {
+            els.prev_date.disabled = false;
+        }
+        if (date.year == last_date.year) {
+            els.next_date.disabled = true;
+        }
+        else {
+            els.next_date.disabled = false;
         }
     }
     else if (curr_mode === 1) {
         date = date.add({ months: change });
         while (images_data?.[date.year]?.[date.month] === undefined) {
             date = date.add({ months: change });
-            if (date.year < 1970 || date.year > today.year) {
-                break;
-            }
+        }
+        if (date.year == first_date.year && date.month == first_date.month) {
+            els.prev_date.disabled = true;
+        }
+        else {
+            els.prev_date.disabled = false;
+        }
+        if (date.year == last_date.year && date.month == last_date.month) {
+            els.next_date.disabled = true;
+        }
+        else {
+            els.next_date.disabled = false;
         }
     }
     else if (curr_mode === 2) {
         date = date.add({ days: change });
         while (images_data?.[date.year]?.[date.month]?.[date.day] === undefined) {
             date = date.add({ days: change });
-            if (date.year < 1970 || date.year > today.year) {
-                break;
-            }
+        }
+        if (date.equals(first_date)) {
+            els.prev_date.disabled = true;
+        }
+        else {
+            els.prev_date.disabled = false;
+        }
+        if (date.equals(last_date)) {
+            els.next_date.disabled = true;
+        }
+        else {
+            els.next_date.disabled = false;
         }
     }
     else if (curr_mode === 3) {
@@ -111,10 +167,6 @@ function change_date(change) {
             else {
                 img_id += 1
             }
-
-            if (date.year < 1970 || date.year > today.year) {
-                break;
-            }
         }
     }
 
@@ -124,27 +176,25 @@ function change_date(change) {
 function selected_day(event) {
     date = date.with({ day: event.currentTarget.dataset.id});
     curr_mode = 2;
-
-    show_view()
+    change_date(0);
 }
 
 function selected_month(event) {
+    curr_mode = 1;
+
     if (event === null) {
-        curr_mode = 1;
-        show_month_view();
+        change_date(0);
         return;
     }
 
     date = date.with({ month: event.currentTarget.dataset.id});
-    curr_mode = 1;
 
-    show_view();
+    change_date(0);
 }
 
 function selected_year() {
     curr_mode = 0;
-
-    show_view();
+    change_date(0);
 }
 
 function show_month_weeks(week_box) {
@@ -241,7 +291,6 @@ async function show_year_view() {
     for (let i = 0; i < date.monthsInYear; i++) {
         let month = document.createElement('div');
         month.dataset.id = i + 1;
-        month.addEventListener('click', (e) => {selected_month(e);})
 
         let month_label = document.createElement('h2');
         month_label.textContent = date.with({ month: i + 1 }).toLocaleString('pt-BR', params = {month: 'long'});
@@ -260,10 +309,16 @@ async function show_year_view() {
         let num_days = month_date.daysInMonth;
         let start_blanks = month_date.with({ day: 1 }).dayOfWeek % 7
         let num_spaces = 7 * 6;
+        let has_images = false;
         for (let j = -start_blanks; j < num_spaces - start_blanks; j++) {
             let day = document.createElement('li');
 
             if ((j >= 0) && (j < num_days) && (month_data?.[j + 1] !== undefined)) {
+                if (!has_images) {
+                    has_images = true;
+                    month.addEventListener('click', (e) => {selected_month(e)});
+                    month.classList.add('month-button');
+                }
                 let day_data = month_data[j + 1];
                 let image = document.createElement('img');
                 image.src = await get_cover_image(day_data);
@@ -316,13 +371,14 @@ async function show_day_view() {
         
         let image = document.createElement('img');
         image.src = await get_image(single_image_data.id);
-        const ratio = single_image_data.ratio;
+        image.dataset.id = single_image_data.id;
+        let ratio = single_image_data.ratio;
         image.dataset.ratio = ratio;
 
-        const new_w = ratio * TARGET_HEIGHT;
+        let new_w = ratio * TARGET_HEIGHT;
 
         if ((curr_w + new_w + image_queue.length * GAP) > list_w) {
-            const upscale = (list_w - (image_queue.length - 1) * GAP) / curr_w;
+            let upscale = (list_w - (image_queue.length - 1) * GAP) / curr_w;
             image_queue.forEach((img_item) => {
                 img_item.img.style.width = `${img_item.new_w * upscale}px`;
                 img_item.img.style.height = `${TARGET_HEIGHT * upscale}px`;
@@ -497,7 +553,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     chrome.storage.local.get(['images_data'], (result) => {
         images_data = result.images_data || {};
-        change_date(-1);
+        find_first_last_dates();
+        show_view();
     });
     chrome.storage.local.get(['folder_id'], async (result) => {
         FOLDER_ID = result.folder_id || null;
