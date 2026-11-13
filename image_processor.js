@@ -45,7 +45,6 @@ async function drive_request_images_recursive(fields, query, folder_id) {
     for (const folder_data of full_folder_data) {
       for (const file of folder_data.files) {
         file.path = `${(curr_folder.path === undefined) ? '?' : curr_folder.path}/${file.name ? file.name : file.id}`;
-        console.log(file.path);
         if (file.mimeType === 'application/vnd.google-apps.folder') {
           folder_queue.push({'id': file.id, 'path': file.path});
         }
