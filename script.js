@@ -4,7 +4,7 @@ let first_date = null;
 let last_date = null;
 const WEEKS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 let curr_mode = 1; //year = 0, month = 1, day = 2, single = 3
-let img_id = 0;
+let img_i = 0;
 let curr_token = null;
 
 let FOLDER_ID = null;
@@ -72,6 +72,9 @@ function show_view() {
     }
     else if (curr_mode === 2) {
         show_day_view();
+    }
+    else if (curr_mode === 3) {
+        show_single_view();
     }
 }
 
@@ -158,23 +161,54 @@ function change_date(change) {
         }
     }
     else if (curr_mode === 3) {
-        img_id += change
-        while (images_data?.[date.year]?.[date.month]?.[date.day]?.[img_id] === undefined) {
-            if (img_id >= images_data?.[date.year]?.[date.month]?.[date.day].length() || img_id < 0) {
-                img_id = img_id < 0 ? 0 : images_data?.[date.year]?.[date.month]?.[date.day].length() - 1;
+        img_i += change
+        while (images_data?.[date.year]?.[date.month]?.[date.day]?.[img_i] === undefined) {
+            const day_images = images_data?.[date.year]?.[date.month]?.[date.day];
+            if (day_images === undefined || day_images.length === 0) {
+                date = date.add({ days: change});
+                let next_day_images = images_data?.[date.year]?.[date.month]?.[date.day];
+                if (next_day_images === undefined || next_day_images.length === 0) {
+                    next_day_images = [null];
+                }
+                img_i = change > 0 ? 0 : next_day_images.length - 1;
+            }
+            else if ((img_i >= day_images.length) || (img_i < 0)) {
                 date = date.add({ days: change });
+                let next_day_images = images_data?.[date.year]?.[date.month]?.[date.day];
+                if (next_day_images === undefined || next_day_images.length === 0) {
+                    next_day_images = [null];
+                }
+                img_i = change > 0 ? 0 : next_day_images.length - 1;
             }
             else {
-                img_id += 1
+                img_i += change;
             }
+        }
+        if (date.equals(first_date) && (img_i === 0)) {
+            els.prev_date.disabled = true;
+        }
+        else {
+            els.prev_date.disabled = false;
+        }
+        if (date.equals(last_date) && (img_i === (images_data?.[date.year]?.[date.month]?.[date.day].length - 1))) {
+            els.next_date.disabled = true;
+        }
+        else {
+            els.next_date.disabled = false;
         }
     }
 
     show_view();
 }
 
+function selected_single(event) {
+    img_i = parseInt(event.currentTarget.dataset.i);
+    curr_mode = 3;
+    change_date(0);
+}
+
 function selected_day(event) {
-    date = date.with({ day: event.currentTarget.dataset.id});
+    date = date.with({ day: parseInt(event.currentTarget.dataset.id) });
     curr_mode = 2;
     change_date(0);
 }
@@ -187,8 +221,7 @@ function selected_month(event) {
         return;
     }
 
-    date = date.with({ month: event.currentTarget.dataset.id});
-
+    date = date.with({ month: parseInt(event.currentTarget.dataset.id) });
     change_date(0);
 }
 
@@ -241,9 +274,6 @@ async function show_month_view() {
             day.appendChild(day_label);
 
             if (month_data?.[i + 1] !== undefined) {
-                if ((my_mode != curr_mode) || (my_date != date)) {
-                    return;
-                }
                 day.classList.add('image-space');
                 let image = document.createElement('img');
                 image.src = await get_cover_image(month_data[i + 1]);
@@ -262,6 +292,9 @@ async function show_month_view() {
             day.classList.add('blank-space');
         }
 
+        if ((my_mode != curr_mode) || (my_date != date)) {
+            return;
+        }
         days.appendChild(day);
     }
 }
@@ -275,7 +308,7 @@ async function show_year_view() {
     els.single_view.classList.add('hidden');
 
     let year = date.year;
-    let year_data
+    let year_data;
     if (images_data?.[year] !== undefined) {
         year_data = images_data[year];
     }
@@ -362,16 +395,18 @@ async function show_day_view() {
 
     let image_queue = []
     let curr_w = 0;
+    let last_upscale = 1;
 
-    for (const single_image_data of day_data) {
+    for (const [i, single_image_data] of day_data.entries()) {
         if ((my_mode != curr_mode) || (my_date != date)) {
             return;
         }
         let container = document.createElement('li');
-        
+        container.addEventListener('click', (e) => {selected_single(e)})
+        container.dataset.i = i;        
+
         let image = document.createElement('img');
         image.src = await get_image(single_image_data.id);
-        image.dataset.id = single_image_data.id;
         let ratio = single_image_data.ratio;
         image.dataset.ratio = ratio;
 
@@ -380,13 +415,18 @@ async function show_day_view() {
         if ((curr_w + new_w + image_queue.length * GAP) > list_w) {
             let upscale = (list_w - (image_queue.length - 1) * GAP) / curr_w;
             image_queue.forEach((img_item) => {
-                img_item.img.style.width = `${img_item.new_w * upscale}px`;
-                img_item.img.style.height = `${TARGET_HEIGHT * upscale}px`;
+                const img_el = img_item.img;
+                const scaled_w = img_item.new_w * upscale;
+                const scaled_h = TARGET_HEIGHT * upscale;
+                img_el.style.width = `${scaled_w}px`;
+                img_el.style.height = `${scaled_h}px`;
+                img_el.src = change_image_size(img_el.src, Math.max(scaled_w, scaled_h));
                 image_list.appendChild(img_item.container);
             });
 
             image_queue = [];
             curr_w = 0;
+            last_upscale = upscale;
         }
 
         container.appendChild(image);
@@ -395,11 +435,17 @@ async function show_day_view() {
     }
 
     if (image_queue.length > 0) {
-        image_queue.forEach((img_item) => {
-                img_item.img.style.width = `${img_item.new_w}px`;
-                img_item.img.style.height = `${TARGET_HEIGHT}px`;
+        let upscale = (list_w - (image_queue.length - 1) * GAP) / curr_w;
+        let actual_upscale = Math.min(upscale, last_upscale);
+            image_queue.forEach((img_item) => {
+                const img_el = img_item.img;
+                const scaled_w = img_item.new_w * actual_upscale;
+                const scaled_h = TARGET_HEIGHT * actual_upscale;
+                img_el.style.width = `${scaled_w}px`;
+                img_el.style.height = `${scaled_h}px`;
+                img_el.src = change_image_size(img_el.src, Math.max(scaled_w, scaled_h));
                 image_list.appendChild(img_item.container);
-        });
+            });
     }
 }
 
@@ -410,6 +456,7 @@ function justify_day_view(height, gap) {
 
     let curr_row = [];
     let curr_row_w = 0;
+    let last_upscale = 1;
 
     images.forEach((item, i) => {
         const img = item.querySelector('img');
@@ -419,12 +466,17 @@ function justify_day_view(height, gap) {
         if ((curr_row_w + new_w + curr_row.length * gap) > list_w) {
             let upscale = (list_w - (curr_row.length - 1) * gap) / curr_row_w;
             curr_row.forEach((row_item) => {
-                row_item.img.style.width = `${row_item.new_w * upscale}px`;
-                row_item.img.style.height = `${height * upscale}px`;
+                const img_el = row_item.img;
+                const scaled_w = row_item.new_w * upscale;
+                const scaled_h = TARGET_HEIGHT * upscale;
+                img_el.style.width = `${scaled_w}px`;
+                img_el.style.height = `${scaled_h}px`;
+                img_el.src = change_image_size(img_el.src, Math.max(scaled_w, scaled_h));
             });
 
             curr_row = [];
             curr_row_w = 0;
+            last_upscale = upscale;
         }
 
         curr_row.push({ img: img, new_w: new_w });
@@ -432,9 +484,15 @@ function justify_day_view(height, gap) {
     });
 
     if (curr_row.length > 0) {
+        let upscale = (list_w - (curr_row.length - 1) * gap) / curr_row_w;
+        let actual_upscale = Math.min(upscale, last_upscale);
         curr_row.forEach((row_item) => {
-            row_item.img.style.width = `${row_item.new_w}px`;
-            row_item.img.style.height = `${height}px`;
+            const img_el = row_item.img;
+            const scaled_w = row_item.new_w * actual_upscale;
+            const scaled_h = TARGET_HEIGHT * actual_upscale;
+            img_el.style.width = `${scaled_w}px`;
+            img_el.style.height = `${scaled_h}px`;
+            img_el.src = change_image_size(img_el.src, Math.max(scaled_w, scaled_h));
         });
     }
 }
@@ -485,21 +543,32 @@ async function show_single_view() {
     els.year_view.classList.add('hidden');
     els.single_view.classList.remove('hidden');
 
+    let img = els.single_img;
+    img.classList.add('hidden');
+    els.single_loader.classList.remove('hidden');
+
     let year = date.year;
     let month = date.month;
     let day = date.day;
     let single_img_data = {};
-    if (images_data?.[year]?.[month]?.[day]?.[img_id] !== undefined) {
-        single_img_data = images_data[year][month][day][img_id];
-        els.single_img.src = await get_image(single_img_data.id);
-    } else {
-
+    if (images_data?.[year]?.[month]?.[day]?.[img_i] !== undefined) {
+        single_img_data = images_data[year][month][day][img_i];
+        let size = Math.max(img.clientWidth, img.clientHeight);
+        img.src = change_image_size(await get_image(single_img_data.id), size);
+        els.single_name.textContent = single_img_data.name;
+        els.single_date.textContent = date.toLocaleString('pt-BR', params={month: 'numeric', year: 'numeric', day: 'numeric' })
+        els.single_path.textContent = single_img_data.path;
+        img.classList.remove('hidden');
+        els.single_loader.classList.add('hidden');
+    }
+    else {
         return;
     }
 
     let new_date = date.toPlainDateTime(second = `${String(single_img_data.h).padStart(2, '0')}:${String(single_img_data.m).padStart(2, '0')}:${String(single_img_data.s).padStart(2, '0')}`)
 
-    els.cal_label.textContent = new_date.toLocaleString('pt-BR', params={month: 'long', year: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'}) + ` (${date.toLocaleString('pt-BR', params={weekday: 'short'})})`;
+    //els.cal_label.textContent = new_date.toLocaleString('pt-BR', params={month: 'long', year: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric'}) + ` (${date.toLocaleString('pt-BR', params={weekday: 'short'})})`;
+    els.cal_label.textContent = new_date.toLocaleString('pt-BR', params={ hour: 'numeric', minute: 'numeric', second: 'numeric'});
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -521,6 +590,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         single_view: document.getElementById('single-view'),
         single_img: document.getElementById('single-img'),
+        single_loader: document.getElementById('single-loader'),
+        single_name: document.getElementById('single-name'),
+        single_date: document.getElementById('single-date'),
+        single_path: document.getElementById('single-path'),
 
         prev_date: document.getElementById('prev-date'),
         next_date: document.getElementById('next-date'),

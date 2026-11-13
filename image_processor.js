@@ -33,17 +33,21 @@ async function drive_request_data(fields, file = null, query = null) {
 
 async function drive_request_images_recursive(fields, query, folder_id) {
   let full_data = [];
-  let folder_queue = [folder_id];
+  let folder_queue = [{'id': folder_id,
+                      'path': ''
+  }];
 
   while (folder_queue.length > 0) {
-    const curr_folder_id = folder_queue.shift();
-    const new_query = `'${curr_folder_id}' in parents and (mimeType contains 'image/' or mimeType = 'application/vnd.google-apps.folder')${query ? ` and ${query}` : ''}`;
+    const curr_folder = folder_queue.shift();
+    const new_query = `'${curr_folder.id}' in parents and (mimeType contains 'image/' or mimeType = 'application/vnd.google-apps.folder')${query ? ` and ${query}` : ''}`;
   
-    const full_folder_data = await drive_request_data(fields, null, new_query);
+    const full_folder_data = await drive_request_data(fields, null, new_query, curr_folder.path);
     for (const folder_data of full_folder_data) {
       for (const file of folder_data.files) {
+        file.path = `${(curr_folder.path === undefined) ? '?' : curr_folder.path}/${file.name ? file.name : file.id}`;
+        console.log(file.path);
         if (file.mimeType === 'application/vnd.google-apps.folder') {
-          folder_queue.push(file.id);
+          folder_queue.push({'id': file.id, 'path': file.path});
         }
         else {
           full_data.push(file);
@@ -57,7 +61,7 @@ async function drive_request_images_recursive(fields, query, folder_id) {
 
 async function get_images_metadata() {
   const query = "trashed = false";
-  const fields = "files(id, mimeType, imageMediaMetadata)";
+  const fields = "files(id, name, mimeType, imageMediaMetadata)";
   const full_data = await drive_request_images_recursive(fields, query, FOLDER_ID);
 
   images_data = {};
@@ -69,8 +73,10 @@ async function get_images_metadata() {
                     'h': hour,
                     'm': minute,
                     's': second,
-                    'ratio': file.imageMediaMetadata.width / file.imageMediaMetadata.height
-      }
+                    'ratio': file.imageMediaMetadata.width / file.imageMediaMetadata.height,
+                    'name': file.name,
+                    'path': file.path
+                  }
       if (!images_data[year]) {
         images_data[year] = {};
       }
@@ -109,6 +115,11 @@ async function get_image(id) {
 
   const data = await drive_request_data(fields, file = id);
   return data[0].thumbnailLink;
+}
+
+function change_image_size(link, size) {
+  let resized_link = link.replace(/=s\d+$/, `=s${parseInt(size)}`);
+  return resized_link;
 }
 
 async function get_folder_name(folder_id) {
