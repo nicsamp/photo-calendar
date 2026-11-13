@@ -208,8 +208,14 @@ function selected_single(event) {
 }
 
 function selected_day(event) {
-    date = date.with({ day: parseInt(event.currentTarget.dataset.id) });
     curr_mode = 2;
+
+    if (event === null) {
+        change_date(0);
+        return;
+    }
+
+    date = date.with({ day: parseInt(event.currentTarget.dataset.id) });
     change_date(0);
 }
 
@@ -594,6 +600,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         single_name: document.getElementById('single-name'),
         single_date: document.getElementById('single-date'),
         single_path: document.getElementById('single-path'),
+        single_back: document.getElementById('single-back-button'),
 
         prev_date: document.getElementById('prev-date'),
         next_date: document.getElementById('next-date'),
@@ -611,6 +618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         select_link_loader: document.getElementById('select-folder-link-loader')
     };
     els.day_back.addEventListener('click', () => {selected_month(null);});
+    els.single_back.addEventListener('click', () => {selected_day(null);});
 
     els.prev_date.addEventListener('click', () => {change_date(-1)});
     els.next_date.addEventListener('click', () => {change_date(1)});

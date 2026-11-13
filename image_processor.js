@@ -107,6 +107,18 @@ async function get_images_metadata() {
     }
   }
 
+  for (const year in images_data) {
+    for (const month in images_data[year]) {
+      for (const day in images_data[year][month]) {
+        images_data[year][month][day].sort((a, b) => {
+          if (a.h !== b.h) return a.h - b.h;
+          if (a.m !== b.m) return a.m - b.m;
+          return a.s - b.s;
+        });
+      }
+    }
+  }
+
   chrome.storage.local.set({ 'images_data': images_data });
 }
 
